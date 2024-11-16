@@ -1,16 +1,18 @@
-#ifdef Serial_h
+// #ifdef Serial_h
 #include "Serial.h"
-#include "Arduino.h"
+#include <Arduino.h>
+
+#define BaudRate 115200
 
 /*
     Constructor
 */
-Serial::Serial()
+Serial_ESP32::Serial_ESP32()
 {
     OpenSerialPort();
 }
 
-Serial::~Serial()
+Serial_ESP32::~Serial_ESP32()
 {
     LogMessage("Close serial port");
     CloseSerialPort();
@@ -19,20 +21,20 @@ Serial::~Serial()
 /*
     Methods
 */
-void Serial::OpenSerialPort()
+void Serial_ESP32::OpenSerialPort()
 {
     Serial.begin(BaudRate);
     delay(10);
     LogMessage("Serial port opened");
 }
 
-void Serial::CloseSerialPort()
+void Serial_ESP32::CloseSerialPort()
 {
     
 }
 
-void Serial::LogMessage(const char* msg)
+void Serial_ESP32::LogMessage(const char* msg)
 {
     Serial.println(msg);
 }
-#endif
+// #endif

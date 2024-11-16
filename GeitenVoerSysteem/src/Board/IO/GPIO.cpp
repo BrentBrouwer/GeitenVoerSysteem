@@ -1,6 +1,6 @@
-#ifdef GPIO_h
+// #ifdef GPIO_h
 #include "GPIO.h"
-#include "Arduino.h"
+#include <Arduino.h>
 
 #define PIN_STATUS_LED 2
 
@@ -28,7 +28,7 @@ void GPIO::InputInit()
 
 void GPIO::OutputInit()
 {
-    PinMode(PIN_STATUS_LED, OUTPUT);
+    pinMode(PIN_STATUS_LED, OUTPUT);
 }
 
 void GPIO::StatusLedControl()
@@ -37,8 +37,8 @@ void GPIO::StatusLedControl()
 
     if ((currentTicks - m_LastStateChange) > (STATUS_LED_PERIOD_TIME / 2))
     {
-        digitalWrite(StatusLedPin, !digitalRead(StatusLedPin) ? HIGH : LOW);
+        digitalWrite(PIN_STATUS_LED, !digitalRead(PIN_STATUS_LED) ? HIGH : LOW);
         m_LastStateChange = currentTicks;
     }
 }
-#endif
+// #endif

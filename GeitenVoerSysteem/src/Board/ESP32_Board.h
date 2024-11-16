@@ -12,7 +12,7 @@
 
 class ESP32_Board 
 : public GPIO
-, public Serial
+, public Serial_ESP32
 {
     /*
         Constructor

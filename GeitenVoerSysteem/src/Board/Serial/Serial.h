@@ -7,14 +7,14 @@
 #ifndef Serial_h
 #define Serial_h
 
-class Serial
+class Serial_ESP32
 {
     /*
         Constructor
     */
     public:
-        Serial();
-        ~Serial();
+        Serial_ESP32();
+        ~Serial_ESP32();
 
     /*
         Methods
