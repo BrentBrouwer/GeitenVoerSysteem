@@ -1,49 +1,16 @@
 #include <Arduino.h>
+#include "Board/ESP32_Board.h"
 
-#pragma region PreProcessor
-#define EnableLogging
-#define BaudRate 115200
-#pragma endregion
+// Hardware
+static ESP32_Board s_Board;
 
-#pragma region Properties
-#pragma endregion
-
-#pragma region Function Declarations
-void SetupSerial();
-void SetupGpio();
-void LogMessage(const char* msg);
-#pragma endregion
-
-#pragma region Program
 void setup()
 {
-    SetupSerial();
-    SetupGpio();
+    
 }
 
 void loop()
 {
+    // s_Board.StatusLedControl();
     delay(10);
 }
-#pragma endregion
-
-#pragma Region Methods
-void SetupSerial()
-{
-    Serial.begin(BaudRate);
-    delay(10);
-    LogMessage("Serial port opened");
-}
-
-void SetupGpio()
-{
-    LogMessage("GPIO initialised");
-}
-
-void LogMessage(const char* msg)
-{
-    // #ifdef EnableLog
-    Serial.println(msg);
-    // #endif
-}
-#pragma endregion

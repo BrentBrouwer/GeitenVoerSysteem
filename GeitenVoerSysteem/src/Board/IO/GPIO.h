@@ -1,3 +1,8 @@
+/*
+
+    GPIO handler for the ESP32 Dev Board
+
+*/
 
 #ifndef GPIO_h
 #define GPIO_h
@@ -13,13 +18,16 @@ class GPIO
     /*
         Methods
     */
-   public:
+    public:
         void StatusLedControl();
-        
-    protected:
+
+    private:
         void InputInit();
         void OutputInit();
 
+    /*
+        Variables
+    */
     private:
         // LED Status
         const unsigned long STATUS_LED_PERIOD_TIME = 2000;    // 0.5 Hz

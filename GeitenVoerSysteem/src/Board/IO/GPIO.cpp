@@ -1,8 +1,3 @@
-/*
-
-GPIO handler for the ESP32 Dev Board
-
-*/
 #ifdef GPIO_h
 #include "GPIO.h"
 #include "Arduino.h"

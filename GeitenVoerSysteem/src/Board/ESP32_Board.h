@@ -1,19 +1,22 @@
+/*
+
+    ESP32 Dev Board base functionalities
+
+*/  
+
 #ifndef ESP32Board_h
 #define ESP32Board_h
 
-#ifdef GPIO_h
-#include "GPIO.h"
-#endif
-#ifdef SERIAL_h
-#include "Serial.h"
-#endif
+#include "IO/GPIO.h"
+#include "Serial/Serial.h"
 
 class ESP32_Board 
 : public GPIO
 , public Serial
 {
-    private:
-
+    /*
+        Constructor
+    */
     public:
         ESP32_Board();
         ~ESP32_Board();
