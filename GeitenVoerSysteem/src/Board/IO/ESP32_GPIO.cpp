@@ -1,5 +1,5 @@
-// #ifdef GPIO_h
-#include "GPIO.h"
+// #ifdef ESP32_GPIO_h
+#include "ESP32_GPIO.h"
 #include <Arduino.h>
 
 #define PIN_STATUS_LED 2

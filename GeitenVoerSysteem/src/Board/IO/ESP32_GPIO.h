@@ -4,8 +4,8 @@
 
 */
 
-#ifndef GPIO_h
-#define GPIO_h
+#ifndef ESP32_GPIO_h
+#define ESP32_GPIO_h
 class GPIO
 {
     /*

@@ -4,8 +4,8 @@
 
 */
 
-#ifndef Serial_h
-#define Serial_h
+#ifndef ESP32_Serial_h
+#define ESP32_Serial_h
 
 class Serial_ESP32
 {
@@ -21,6 +21,7 @@ class Serial_ESP32
     */
     public:
         void LogMessage(const char* msg);
+        void LogMessageWithTimestamp(const char* msg);
 
     protected:
         void OpenSerialPort();

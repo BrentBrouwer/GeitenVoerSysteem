@@ -6,6 +6,7 @@ static ESP32_Board s_Board;
 
 void setup()
 {
+    // Initialize the hardware
 }
 
 void loop()
