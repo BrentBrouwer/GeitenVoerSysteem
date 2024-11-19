@@ -5,7 +5,6 @@
     Constructor
 */
 ESP32_Board::ESP32_Board()
-
 {
 
 }

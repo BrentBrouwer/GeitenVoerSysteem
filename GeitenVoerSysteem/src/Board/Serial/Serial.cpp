@@ -7,8 +7,10 @@
 /*
     Constructor
 */
-Serial_ESP32::Serial_ESP32()
+Serial_ESP32::Serial_ESP32(int baudRate)
+: m_BaudRate(baudRate)
 {
+    s_Instance = new Serial_ESP32(baudRate);
     OpenSerialPort();
 }
 
@@ -22,24 +24,17 @@ Serial_ESP32::~Serial_ESP32()
 */
 void Serial_ESP32::OpenSerialPort()
 {
-    Serial.begin(BaudRate);
+    Serial.begin(m_BaudRate);
     delay(10);
-    LogMessage("Serial port opened");
 }
 
 void Serial_ESP32::CloseSerialPort()
 {
-    LogMessage("Close serial port");
     Serial.end();
 }
 
-void Serial_ESP32::LogMessage(const char* msg)
+void Serial_ESP32::WriteSerialMsg(const char* msg)
 {
     Serial.println(msg);
-}
-
-void Serial_ESP32::LogMessageWithTimestamp(const char* msg)
-{
-    Serial.println(printf("%i: %s", millis(), msg));
 }
 // #endif

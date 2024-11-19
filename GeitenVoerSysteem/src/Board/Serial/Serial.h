@@ -13,15 +13,14 @@ class Serial_ESP32
         Constructor
     */
     public:
-        Serial_ESP32();
+        Serial_ESP32(int baudRate);
         ~Serial_ESP32();
 
     /*
         Methods
     */
     public:
-        void LogMessage(const char* msg);
-        void LogMessageWithTimestamp(const char* msg);
+        void WriteSerialMsg(const char* msg);
 
     protected:
         void OpenSerialPort();
@@ -30,5 +29,10 @@ class Serial_ESP32
     /*
         Variables
     */
+    public:
+        // Singleton instance
+        static Serial_ESP32* s_Instance;
+    private:
+        const int m_BaudRate = 9600;
 };
 #endif
