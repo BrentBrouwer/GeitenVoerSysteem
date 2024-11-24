@@ -2,8 +2,10 @@
 #define ESP32_WiFiClient_h
 
 #include "WiFi.h"
+#include "../../Feat/Log/ESP32_Log.h"
 
 class ESP32_WiFiClient
+: ESP32_Log
 {
     /*
         Constructor

@@ -31,6 +31,7 @@ void ESP32_WiFiClient::StartConnection()
         delay(5);
     }
     m_LastConnectionUpdate = millis();
+    LogMessage("Connected");
 }
 
 void CheckConnection()

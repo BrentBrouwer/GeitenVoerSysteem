@@ -19,19 +19,14 @@ class Serial_ESP32
     /*
         Methods
     */
-    public:
-        void WriteSerialMsg(const char* msg);
-
     protected:
+        void WriteSerialMsg(const char* msg);
         void OpenSerialPort();
         void CloseSerialPort();
 
     /*
         Variables
     */
-    public:
-        // Singleton instance
-        static Serial_ESP32* s_Instance;
     private:
         const int m_BaudRate = 9600;
 };

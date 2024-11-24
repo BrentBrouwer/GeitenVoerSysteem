@@ -32,8 +32,9 @@ void ESP32_Log::LogMessageWithTimestamp(const char* msg)
 
 void ESP32_Log::WriteMessageToSerialPort(const char* msg)
 {
+    // When this method is called, the ESP32 resets itself
     char* msgToSend;
-    sprintf(msgToSend, "%c%s%c", m_STX, msg, m_ETX);
+    sprintf(msgToSend, "%c%s%c", ESP32_Log::m_STX, msg, ESP32_Log::m_ETX);
     WriteSerialMsg(msgToSend);
 }
 // #endif

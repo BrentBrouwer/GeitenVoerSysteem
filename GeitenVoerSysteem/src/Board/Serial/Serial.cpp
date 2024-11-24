@@ -10,13 +10,16 @@
 Serial_ESP32::Serial_ESP32(int baudRate)
 : m_BaudRate(baudRate)
 {
-    s_Instance = new Serial_ESP32(baudRate);
-    OpenSerialPort();
+    // s_Instance = new Serial_ESP32(baudRate);
+    if (!Serial.available())
+    {
+        OpenSerialPort();
+    }
 }
 
 Serial_ESP32::~Serial_ESP32()
 {
-    CloseSerialPort();
+    // CloseSerialPort();
 }
 
 /*
@@ -25,11 +28,17 @@ Serial_ESP32::~Serial_ESP32()
 void Serial_ESP32::OpenSerialPort()
 {
     Serial.begin(m_BaudRate);
+    // while (!Serial.available())
+    // {
+    //     delay(10);
+    // }
     delay(10);
+    WriteSerialMsg("Port opened");
 }
 
 void Serial_ESP32::CloseSerialPort()
 {
+    WriteSerialMsg("Close port");
     Serial.end();
 }
 

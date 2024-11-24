@@ -17,8 +17,8 @@ class ESP32_Log
         Methods
     */
     public:
-        void LogMessage(const char* msg);
-        void LogMessageWithTimestamp(const char* msg);
+        static void LogMessage(const char* msg);
+        static void LogMessageWithTimestamp(const char* msg);
 
     private:
         void WriteMessageToSerialPort(const char* msg);
@@ -26,7 +26,8 @@ class ESP32_Log
         Variables
     */
     private:
-        const char m_STX = 2;
-        const char m_ETX = 3;
+        static ESP32_Log s_Instance;
+        static const char m_STX = 2;
+        static const char m_ETX = 3;
 };
 #endif
