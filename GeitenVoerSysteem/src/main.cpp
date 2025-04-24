@@ -141,12 +141,8 @@ void MotorFullSpeed(Motors motor, bool forward)
 
         if (ValidPins(forwardPin, backwardPin))
         {
-            Serial.println("Select direction");
-
             if (forward)
             {
-                Serial.println("Forward start");
-
                 // First disable backwards, then enable forwards
                 digitalWrite(backwardPin, LOW);
                 delay(100);
@@ -155,8 +151,6 @@ void MotorFullSpeed(Motors motor, bool forward)
             }
             else
             {
-                Serial.println("Backward start");
-
                 // First disable forwards, then enable backwards
                 digitalWrite(forwardPin, LOW);
                 delay(100);
@@ -222,7 +216,7 @@ bool EnableMotor(Motors motor, bool enable)
         char msg[64];
         sprintf(msg, "%s %s", GetMotorString(motor), enabled ? "enabled" : "disabled");
         Serial.println(msg);
-        return true;
+        return enable == enabled;
     }
     return false;
 }
