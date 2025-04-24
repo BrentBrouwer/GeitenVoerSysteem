@@ -59,6 +59,7 @@ void setup()
 
 void loop()
 {
+    int delay = 5;
     Serial.println("Start loop");
 
     // put your main code here, to run repeatedly:
@@ -67,25 +68,25 @@ void loop()
     // Forward for 1000 ms
     Serial.println("Forward");
     MotorFullSpeed(MotorA, true);
-    sleep(1000);
+    sleep(delay);
 
     // Stop for 1000 ms
     Serial.println("Stop1");
     MotorStop(MotorA);
-    sleep(1000);
+    sleep(delay);
 
     // Backward for 1000 ms
     Serial.println("Backward");
     MotorFullSpeed(MotorA, false);
-    sleep(1000);
+    sleep(delay);
 
     // Stop for 1000 ms
     Serial.println("Stop2");
     MotorStop(MotorA);
-    sleep(1000);
+    sleep(delay);
 
     // Prevent high CPU-usage
-    sleep(1);
+    // delay(100);
 }
 
 // put function definitions here:
@@ -148,7 +149,7 @@ void MotorFullSpeed(Motors motor, bool forward)
 
                 // First disable backwards, then enable forwards
                 digitalWrite(backwardPin, LOW);
-                sleep(10);
+                delay(100);
                 digitalWrite(forwardPin, HIGH);
                 Serial.println("Forward complete");
             }
@@ -158,7 +159,7 @@ void MotorFullSpeed(Motors motor, bool forward)
 
                 // First disable forwards, then enable backwards
                 digitalWrite(forwardPin, LOW);
-                sleep(10);
+                delay(100);
                 digitalWrite(backwardPin, HIGH);
                 Serial.println("Backward complete");
             }
@@ -221,7 +222,7 @@ bool EnableMotor(Motors motor, bool enable)
         char msg[64];
         sprintf(msg, "%s %s", GetMotorString(motor), enabled ? "enabled" : "disabled");
         Serial.println(msg);
-        return enabled;
+        return true;
     }
     return false;
 }
@@ -246,7 +247,7 @@ char* GetMotorString(Motors motor)
             return "MotorB";
 
         default:
-            return " ";
+            return "Unknown motor";
     }
 }
 #pragma endregion
