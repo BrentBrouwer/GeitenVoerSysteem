@@ -59,29 +59,25 @@ void setup()
 
 void loop()
 {
-    int delay = 5;
+    int delay = 3;
     Serial.println("Start loop");
 
     // put your main code here, to run repeatedly:
     LedStatusControl();
 
     // Forward for 1000 ms
-    Serial.println("Forward");
     MotorFullSpeed(MotorA, true);
     sleep(delay);
 
     // Stop for 1000 ms
-    Serial.println("Stop1");
     MotorStop(MotorA);
     sleep(delay);
 
     // Backward for 1000 ms
-    Serial.println("Backward");
     MotorFullSpeed(MotorA, false);
     sleep(delay);
 
     // Stop for 1000 ms
-    Serial.println("Stop2");
     MotorStop(MotorA);
     sleep(delay);
 
