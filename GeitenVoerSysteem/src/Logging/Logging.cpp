@@ -1,12 +1,19 @@
 #include "Logging.h"
 #include <Arduino.h>
 
-void SetupLogging(int baudRate)
+void SetupLogging(int baudRate, bool enabled)
 {
-    Serial.begin(baudRate);
+    s_LogEnabled = enabled;
+    if (enabled)
+    {
+        Serial.begin(baudRate);
+    }
 }
 
 void LogMessage(const char* msg)
 {
-    Serial.println(msg);
+    if (s_LogEnabled)
+    {
+        Serial.println(msg);
+    }
 }

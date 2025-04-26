@@ -1,5 +1,6 @@
 #include "MotorControl.h"
 #include <Arduino.h>
+#include "../Logging/Logging.h"
 
 MotorControl::MotorControl(Motors motor, int enablePin, int forwardPin, int backwardPin, const char* motorName) : 
 m_SelectedMotor(motor),
@@ -22,11 +23,11 @@ void MotorControl::MotorStop()
     digitalWrite(m_BackwardPin, LOW);
     if (EnableMotor(false))
     {
-        Serial.println("Motor stopped");
+        LogMessage("Motor stopped");
     }
     else
     {
-        Serial.println("Failed to stop motor");
+        LogMessage("Failed to stop motor");
     }
 }
 
@@ -34,7 +35,7 @@ void MotorControl::MotorFullSpeed(bool forward)
 {
     char msg[64];
     sprintf(msg, "%s full speed %s", m_MotorString, forward ? "forward" : "backward");
-    Serial.println(msg);
+    LogMessage(msg);
 
     // Enable the drive
     if (EnableMotor(true))
@@ -45,7 +46,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_BackwardPin, LOW);
             delay(100);
             digitalWrite(m_ForwardPin, HIGH);
-            Serial.println("Forward complete");
+            LogMessage("Forward complete");
         }
         else
         {
@@ -53,7 +54,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_ForwardPin, LOW);
             delay(100);
             digitalWrite(m_BackwardPin, HIGH);
-            Serial.println("Backward complete");
+            LogMessage("Backward complete");
         }
     }
 }
@@ -67,7 +68,7 @@ bool MotorControl::EnableMotor(bool enable)
 
         char msg[64];
         sprintf(msg, "%s %s", m_MotorString, enabled ? "enabled" : "disabled");
-        Serial.println(msg);
+        LogMessage(msg);
         return enable == enabled;
     }
     return false;
@@ -78,6 +79,6 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     bool valid = forwardPin > -1 && backwardPin > -1;
     char msg[32];
     sprintf(msg, "%s pins selected", valid ? "valid" : "invalid");
-    Serial.println(msg);
+    LogMessage(msg);
     return valid;
 }

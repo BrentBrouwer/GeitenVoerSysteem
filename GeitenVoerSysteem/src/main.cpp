@@ -24,7 +24,7 @@ void LedStatusControl();
 
 void setup()
 {
-    SetupLogging(9600);
+    SetupLogging(9600, true);
 
     // Status LED
     pinMode(STATUS_LED_PIN, OUTPUT);
