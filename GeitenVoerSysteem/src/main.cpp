@@ -18,12 +18,11 @@ MotorControl* m_FeedMotor;
 void LedStatusControl();
 #pragma endregion
 
-
 bool firstTime = true;
 
 void setup()
 {
-    // SetupLogging(9600, true);
+    Logging::SetupLogging(9600, true);
 
     // Status LED
     pinMode(STATUS_LED_PIN, OUTPUT);
