@@ -2,8 +2,7 @@
 #include <Arduino.h>
 #include "../Logging/Logging.h"
 
-MotorControl::MotorControl(Motors motor, int enablePin, int forwardPin, int backwardPin, const char* motorName) : 
-m_SelectedMotor(motor),
+MotorControl::MotorControl(int enablePin, int forwardPin, int backwardPin, const char* motorName) : 
 m_EnablePin(enablePin),
 m_ForwardPin(forwardPin),
 m_BackwardPin(backwardPin),
@@ -23,11 +22,11 @@ void MotorControl::MotorStop()
     digitalWrite(m_BackwardPin, LOW);
     if (EnableMotor(false))
     {
-        LogMessage("Motor stopped");
+        // LogMessage("Motor stopped");
     }
     else
     {
-        LogMessage("Failed to stop motor");
+        // LogMessage("Failed to stop motor");
     }
 }
 
@@ -35,7 +34,7 @@ void MotorControl::MotorFullSpeed(bool forward)
 {
     char msg[64];
     sprintf(msg, "%s full speed %s", m_MotorString, forward ? "forward" : "backward");
-    LogMessage(msg);
+    // LogMessage(msg);
 
     // Enable the drive
     if (EnableMotor(true))
@@ -46,7 +45,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_BackwardPin, LOW);
             delay(100);
             digitalWrite(m_ForwardPin, HIGH);
-            LogMessage("Forward complete");
+            // LogMessage("Forward complete");
         }
         else
         {
@@ -54,7 +53,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_ForwardPin, LOW);
             delay(100);
             digitalWrite(m_BackwardPin, HIGH);
-            LogMessage("Backward complete");
+            // LogMessage("Backward complete");
         }
     }
 }
@@ -68,7 +67,7 @@ bool MotorControl::EnableMotor(bool enable)
 
         char msg[64];
         sprintf(msg, "%s %s", m_MotorString, enabled ? "enabled" : "disabled");
-        LogMessage(msg);
+        // LogMessage(msg);
         return enable == enabled;
     }
     return false;
@@ -79,6 +78,6 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     bool valid = forwardPin > -1 && backwardPin > -1;
     char msg[32];
     sprintf(msg, "%s pins selected", valid ? "valid" : "invalid");
-    LogMessage(msg);
+    // LogMessage(msg);
     return valid;
 }
