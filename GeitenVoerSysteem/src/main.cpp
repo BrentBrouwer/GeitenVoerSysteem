@@ -30,7 +30,7 @@ void setup()
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
 
-    // LogMessage("Setup complete");
+    Logging::LogMessage("Setup complete");
 }
 
 void loop()

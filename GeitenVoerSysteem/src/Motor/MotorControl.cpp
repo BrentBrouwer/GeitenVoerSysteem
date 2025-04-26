@@ -22,11 +22,11 @@ void MotorControl::MotorStop()
     digitalWrite(m_BackwardPin, LOW);
     if (EnableMotor(false))
     {
-        // LogMessage("Motor stopped");
+        Logging::LogMessage("Motor stopped");
     }
     else
     {
-        // LogMessage("Failed to stop motor");
+        Logging::LogMessage("Failed to stop motor");
     }
 }
 
@@ -34,7 +34,7 @@ void MotorControl::MotorFullSpeed(bool forward)
 {
     char msg[64];
     sprintf(msg, "%s full speed %s", m_MotorString, forward ? "forward" : "backward");
-    // LogMessage(msg);
+    Logging::LogMessage(msg);
 
     // Enable the drive
     if (EnableMotor(true))
@@ -45,7 +45,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_BackwardPin, LOW);
             delay(100);
             digitalWrite(m_ForwardPin, HIGH);
-            // LogMessage("Forward complete");
+            Logging::LogMessage("Forward complete");
         }
         else
         {
@@ -53,7 +53,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_ForwardPin, LOW);
             delay(100);
             digitalWrite(m_BackwardPin, HIGH);
-            // LogMessage("Backward complete");
+            Logging::LogMessage("Backward complete");
         }
     }
 }
@@ -67,7 +67,7 @@ bool MotorControl::EnableMotor(bool enable)
 
         char msg[64];
         sprintf(msg, "%s %s", m_MotorString, enabled ? "enabled" : "disabled");
-        // LogMessage(msg);
+        Logging::LogMessage(msg);
         return enable == enabled;
     }
     return false;
@@ -78,6 +78,6 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     bool valid = forwardPin > -1 && backwardPin > -1;
     char msg[32];
     sprintf(msg, "%s pins selected", valid ? "valid" : "invalid");
-    // LogMessage(msg);
+    Logging::LogMessage(msg);
     return valid;
 }
