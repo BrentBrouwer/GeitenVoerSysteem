@@ -6,7 +6,7 @@ class Logging
 {
     public:
         static void SetupLogging(int baudRate, bool enabled);
-        static void LogMessage(const char* msg);
+        static void LogMessage(const char* msg, bool newLine = true);
     private:  
         static bool s_LogEnabled;
 };

@@ -1,11 +1,15 @@
 #include <Arduino.h>
 #include "Logging/Logging.h"
+#include "Wifi/WifiServer/WifiServer.h"
 #include "Motor/MotorControl.h"
 
 #pragma region Fields
 // Status LED
 #define STATUS_LED_PIN 2
 int m_LastStatusChange = 0;
+
+// Wifi handling
+WifiServer* m_WifiServer;
 
 // Feeding motor
 #define MOTOR_A_ENABLE 4
@@ -27,6 +31,9 @@ void setup()
     // Status LED
     pinMode(STATUS_LED_PIN, OUTPUT);
 
+    // Create the WifiServer
+    m_WifiServer = new WifiServer(80, "De Onderbroek Van Oma Rikie", , "test");
+
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
 
@@ -37,6 +44,15 @@ void loop()
 {
     // put your main code here, to run repeatedly:
     LedStatusControl();
+
+    // Check for connected clients that have send a request
+    ClientMsg newClient = m_WifiServer->GetConnectedClient();
+
+    // Check for a valid message
+    if (newClient.Message != NULL)
+    {
+        // 
+    }
 
     if (firstTime)
     {

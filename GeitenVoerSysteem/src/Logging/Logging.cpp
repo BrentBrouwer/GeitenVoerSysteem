@@ -12,10 +12,17 @@ void Logging::SetupLogging(int baudRate, bool enabled)
     }
 }
 
-void Logging::LogMessage(const char* msg)
+void Logging::LogMessage(const char* msg, bool newLine)
 {
     if (Logging::s_LogEnabled)
     {
-        Serial.println(msg);
+        if (newLine)
+        {
+            Serial.println(msg);
+        }
+        else
+        {
+            Serial.print(msg);
+        }
     }
 }
