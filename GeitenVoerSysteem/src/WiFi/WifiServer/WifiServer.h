@@ -1,6 +1,14 @@
 #include <SPI.h>
 #include <WiFi.h>
 
+
+struct ClientMsg
+{
+    WiFiClient Client;
+    String Message;
+    int ConnectionTime;
+};
+
 class WifiServer
 {
     public:
@@ -8,23 +16,15 @@ class WifiServer
         ClientMsg GetConnectedClient();
     
     private:
+        void GetMacAdress();
         void SetupDomainName();
         void ConnectToLocalNetwork();
         void HandleIncomingMsg();
         
     private:
         WiFiServer m_WifiServer;
-        const int m_PortNr;
+        const uint16_t m_PortNr;
         const char* m_SSID;
         const char* m_Password;
         const char* m_DomainName;
-
-        
-};
-
-struct ClientMsg
-{
-    WiFiClient Client;
-    String Message;
-    int ConnectionTime;
 };

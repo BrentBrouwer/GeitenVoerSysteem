@@ -1,6 +1,5 @@
 #include "MotorControl.h"
 #include <Arduino.h>
-#include "../Logging/Logging.h"
 
 MotorControl::MotorControl(int enablePin, int forwardPin, int backwardPin, const char* motorName) : 
 m_EnablePin(enablePin),
@@ -22,11 +21,11 @@ void MotorControl::MotorStop()
     digitalWrite(m_BackwardPin, LOW);
     if (EnableMotor(false))
     {
-        Logging::LogMessage("Motor stopped");
+        Serial.println("Motor stopped");
     }
     else
     {
-        Logging::LogMessage("Failed to stop motor");
+        Serial.println("Failed to stop motor");
     }
 }
 
@@ -34,7 +33,7 @@ void MotorControl::MotorFullSpeed(bool forward)
 {
     char msg[64];
     sprintf(msg, "%s full speed %s", m_MotorString, forward ? "forward" : "backward");
-    Logging::LogMessage(msg);
+    Serial.println(msg);
 
     // Enable the drive
     if (EnableMotor(true))
@@ -45,7 +44,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_BackwardPin, LOW);
             delay(100);
             digitalWrite(m_ForwardPin, HIGH);
-            Logging::LogMessage("Forward complete");
+            Serial.println("Forward complete");
         }
         else
         {
@@ -53,7 +52,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_ForwardPin, LOW);
             delay(100);
             digitalWrite(m_BackwardPin, HIGH);
-            Logging::LogMessage("Backward complete");
+            Serial.println("Backward complete");
         }
     }
 }
@@ -67,7 +66,7 @@ bool MotorControl::EnableMotor(bool enable)
 
         char msg[64];
         sprintf(msg, "%s %s", m_MotorString, enabled ? "enabled" : "disabled");
-        Logging::LogMessage(msg);
+        Serial.println(msg);
         return enable == enabled;
     }
     return false;
@@ -78,6 +77,6 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     bool valid = forwardPin > -1 && backwardPin > -1;
     char msg[32];
     sprintf(msg, "%s pins selected", valid ? "valid" : "invalid");
-    Logging::LogMessage(msg);
+    Serial.println(msg);
     return valid;
 }

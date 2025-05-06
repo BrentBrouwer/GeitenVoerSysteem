@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "Logging/Logging.h"
 #include "Wifi/WifiServer/WifiServer.h"
 #include "Motor/MotorControl.h"
 
@@ -19,6 +18,7 @@ MotorControl* m_FeedMotor;
 #pragma endregion
 
 #pragma region Definitions
+void SetupLogging();
 void LedStatusControl();
 #pragma endregion
 
@@ -26,18 +26,19 @@ bool firstTime = true;
 
 void setup()
 {
-    Logging::SetupLogging(9600, true);
+    SetupLogging();
 
     // Status LED
     pinMode(STATUS_LED_PIN, OUTPUT);
 
     // Create the WifiServer
-    m_WifiServer = new WifiServer(80, "De Onderbroek Van Oma Rikie", , "test");
+    m_WifiServer = new WifiServer(80, "24GHz_TestNetwork", "BloempotKapsel243", "test");
+    // m_WifiServer = new WifiServer(80, "De Onderbroek Van Oma Rikie", "Gordijn564", "test");
 
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
 
-    Logging::LogMessage("Setup complete");
+    Serial.println("Setup complete");
 }
 
 void loop()
@@ -52,18 +53,39 @@ void loop()
     if (newClient.Message != NULL)
     {
         // 
+
+        // Clear the response message
+        newClient.Message = "";
+
+        // Close the Connection
+        newClient.Client.stop();
+        Serial.println("Client disconnected");
     }
 
-    if (firstTime)
-    {
-        firstTime = false;
-        m_FeedMotor->MotorFullSpeed(true);
-        delay(2000);
-        m_FeedMotor->MotorStop();
-    }
+    // if (firstTime)
+    // {
+    //     firstTime = false;
+    //     m_FeedMotor->MotorFullSpeed(true);
+    //     delay(2000);
+    //     m_FeedMotor->MotorStop();
+    // }
 }
 
 // put function definitions here:
+void SetupLogging()
+{
+    Serial.begin(9600);
+    delay(100);
+
+    // Below not working
+    // while (!Serial.available())
+    // {
+    //     sleep(1);
+    // }
+
+    Serial.println("Serial monitor opened");
+}
+
 void LedStatusControl()
 {
     int now = millis();
