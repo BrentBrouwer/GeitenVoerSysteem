@@ -1,8 +1,8 @@
-#include "WifiServer.h"
+#include "WifiServerESP.h"
 #include <ESPmDNS.h>
 #include <esp_wifi.h>
 
-WifiServer::WifiServer(int portNr, const char *ssid, const char *password, const char *domainName)
+WifiServerESP::WifiServerESP(int portNr, const char *ssid, const char *password, const char *domainName)
     : m_PortNr(portNr), m_SSID(ssid), m_Password(password), m_DomainName(domainName)
 {
     if (domainName != NULL)
@@ -13,7 +13,7 @@ WifiServer::WifiServer(int portNr, const char *ssid, const char *password, const
     ConnectToLocalNetwork();
 }
 
-void WifiServer::GetMacAdress()
+void WifiServerESP::GetMacAdress()
 {
     uint8_t baseMac[6];
     esp_err_t ret = esp_wifi_get_mac(WIFI_IF_STA, baseMac);
@@ -29,7 +29,7 @@ void WifiServer::GetMacAdress()
     }
 }
 
-void WifiServer::SetupDomainName()
+void WifiServerESP::SetupDomainName()
 {
     // Domain name can only be used when the domain is registerd at a DNS
 
@@ -50,7 +50,7 @@ void WifiServer::SetupDomainName()
     }
 }
 
-void WifiServer::ConnectToLocalNetwork()
+void WifiServerESP::ConnectToLocalNetwork()
 {
     Serial.printf("Connect to '%s'\n", m_SSID);
 
@@ -68,7 +68,7 @@ void WifiServer::ConnectToLocalNetwork()
     Serial.println(WiFi.localIP());
 }
 
-ClientMsg WifiServer::GetConnectedClient()
+ClientMsg WifiServerESP::GetConnectedClient()
 {
     ClientMsg newClient;
     newClient.Message = "";
