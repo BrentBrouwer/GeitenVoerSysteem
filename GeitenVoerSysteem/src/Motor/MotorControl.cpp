@@ -17,6 +17,7 @@ m_MotorString (motorName)
 
 void MotorControl::MotorStop()
 {
+    m_StartTimeStamp = 0;
     digitalWrite(m_ForwardPin, LOW);
     digitalWrite(m_BackwardPin, LOW);
     if (EnableMotor(false))
@@ -44,6 +45,7 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_BackwardPin, LOW);
             delay(100);
             digitalWrite(m_ForwardPin, HIGH);
+            m_StartTimeStamp = millis();
             Serial.println("Forward complete");
         }
         else
@@ -52,9 +54,21 @@ void MotorControl::MotorFullSpeed(bool forward)
             digitalWrite(m_ForwardPin, LOW);
             delay(100);
             digitalWrite(m_BackwardPin, HIGH);
+            m_StartTimeStamp = millis();
             Serial.println("Backward complete");
         }
     }
+}
+
+bool MotorControl::IsMotorRunning()
+{
+    // Check if the motor is enabled
+    if (digitalRead(m_EnablePin))
+    {
+        // If either one of the pins are on, the motor is running
+        return digitalRead(m_ForwardPin) || digitalRead(m_BackwardPin);
+    }
+    return false;
 }
 
 bool MotorControl::EnableMotor(bool enable)
@@ -79,4 +93,14 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     sprintf(msg, "%s pins selected", valid ? "valid" : "invalid");
     Serial.println(msg);
     return valid;
+}
+
+void MotorControl::CheckMaxRunTime(int maxRunTime)
+{
+    int now = millis();
+    if (now - m_StartTimeStamp >= maxRunTime)
+    {
+        // Timeout expired, stop the motor
+        MotorStop();
+    }
 }

@@ -3,7 +3,7 @@
 #include <esp_wifi.h>
 
 WifiServerESP::WifiServerESP(int portNr, const char *ssid, const char *password, const char *domainName)
-    : m_PortNr(portNr), m_SSID(ssid), m_Password(password), m_DomainName(domainName)
+: m_PortNr(portNr), m_SSID(ssid), m_Password(password), m_DomainName(domainName)
 {
     if (domainName != NULL)
     {
@@ -91,4 +91,11 @@ ClientMsg WifiServerESP::GetConnectedClient()
     }
 
     return newClient;
+}
+
+void WifiServerESP::SendResponseCode(WiFiClient client, bool succes)
+{
+    client.println(succes ? "HTTP/1.1 200 OK" : "HTTP/1.1 400 BAD REQUEST");
+    client.println("Connection: close");
+    client.println();
 }

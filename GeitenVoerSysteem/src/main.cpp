@@ -1,6 +1,8 @@
 #include <Arduino.h>
-#include "Wifi/WifiServer/WifiServer.h"
+#include "Wifi/WifiServer/WifiServerESP.h"
 #include "Motor/MotorControl.h"
+#include "BusinessLogic/BusinessLogic.h"
+
 
 #pragma region Fields
 // Status LED
@@ -8,13 +10,16 @@
 int m_LastStatusChange = 0;
 
 // Wifi handling
-WifiServer* m_WifiServer;
+WifiServerESP* m_WifiServer;
 
 // Feeding motor
 #define MOTOR_A_ENABLE 4
 #define MOTOR_A_BACKWARD 18
 #define MOTOR_A_FORWARD 19
 MotorControl* m_FeedMotor;
+
+// Business Logic
+BusinessLogic* m_BusinessLogic;
 #pragma endregion
 
 #pragma region Definitions
@@ -32,11 +37,15 @@ void setup()
     pinMode(STATUS_LED_PIN, OUTPUT);
 
     // Create the WifiServer
-    m_WifiServer = new WifiServer(80, "24GHz_TestNetwork", "BloempotKapsel243", "test");
+    // m_WifiServer = new WifiServer(80, "24GHz_TestNetwork", "BloempotKapsel243", "test");
     // m_WifiServer = new WifiServer(80, "De Onderbroek Van Oma Rikie", "Gordijn564", "test");
+    m_WifiServer = new WifiServerESP(80, "vBakel", "1001100111");
 
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
+
+    // Create the business logic
+    m_BusinessLogic = new BusinessLogic(m_FeedMotor);
 
     Serial.println("Setup complete");
 }
@@ -52,7 +61,13 @@ void loop()
     // Check for a valid message
     if (newClient.Message != NULL)
     {
-        // 
+        // Get the IP-address of the connected client
+        Serial.print(newClient.Client.remoteIP());
+        Serial.println(" connected");
+
+        // Response to the client
+        m_WifiServer->SendResponseCode(newClient.Client, true);
+        m_BusinessLogic->CheckMessage(newClient);
 
         // Clear the response message
         newClient.Message = "";
@@ -62,13 +77,8 @@ void loop()
         Serial.println("Client disconnected");
     }
 
-    // if (firstTime)
-    // {
-    //     firstTime = false;
-    //     m_FeedMotor->MotorFullSpeed(true);
-    //     delay(2000);
-    //     m_FeedMotor->MotorStop();
-    // }
+    // Motor timeout control
+    m_FeedMotor->CheckMaxRunTime(BusinessLogic::s_MaxRunTime);
 }
 
 // put function definitions here:

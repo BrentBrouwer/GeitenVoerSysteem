@@ -1,6 +1,6 @@
-#ifndef MOTOR_CONTROL
+#ifndef MOTOR_CONTROL_H
 
-#define MOTOR_CONTROL
+#define MOTOR_CONTROL_H
 
 class MotorControl
 {
@@ -11,6 +11,8 @@ class MotorControl
         // Methods
         void MotorStop();
         void MotorFullSpeed(bool forward);
+        bool IsMotorRunning();
+        void CheckMaxRunTime(int maxRunTime = 3000);    // 3000 ms as default
     
     private:
         // Methods
@@ -22,6 +24,9 @@ class MotorControl
         const int m_ForwardPin = 0;
         const int m_BackwardPin = 0;
         const char* m_MotorString;
+
+        int m_StartTimeStamp = 0;
+        int m_MaxRunTime = 0;
 };
 
 #endif // MOTOR_CONTROL

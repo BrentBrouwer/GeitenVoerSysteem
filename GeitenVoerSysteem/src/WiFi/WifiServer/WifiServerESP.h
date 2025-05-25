@@ -1,6 +1,8 @@
+#ifndef WIFI_SERVER_ESP_H
+#define WIFI_SERVER_ESP_H
+
 #include <SPI.h>
 #include <WiFi.h>
-
 
 struct ClientMsg
 {
@@ -9,11 +11,12 @@ struct ClientMsg
     int ConnectionTime;
 };
 
-class WifiServer
+class WifiServerESP
 {
     public:
-        WifiServer(int portNr, const char* ssid, const char* password, const char* domainName = NULL);
+        WifiServerESP(int portNr, const char* ssid, const char* password, const char* domainName = NULL);
         ClientMsg GetConnectedClient();
+        void SendResponseCode(WiFiClient client, bool succes);
     
     private:
         void GetMacAdress();
@@ -28,3 +31,4 @@ class WifiServer
         const char* m_Password;
         const char* m_DomainName;
 };
+#endif
