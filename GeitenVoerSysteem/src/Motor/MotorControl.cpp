@@ -95,12 +95,18 @@ bool MotorControl::ValidPins(int forwardPin, int backwardPin)
     return valid;
 }
 
-void MotorControl::CheckMaxRunTime(int maxRunTime)
+/// @brief Controls the maximum runtime for a motor
+/// @param maxRunTime 
+/// @return true if motor was stopped due to a timeout, otherwise false
+bool MotorControl::CheckMaxRunTime(int maxRunTime)
 {
     int now = millis();
-    if (now - m_StartTimeStamp >= maxRunTime)
+    if (IsMotorRunning() &&
+        (now - m_StartTimeStamp) >= maxRunTime)
     {
         // Timeout expired, stop the motor
         MotorStop();
+        return true;
     }
+    return false;
 }

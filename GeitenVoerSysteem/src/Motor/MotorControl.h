@@ -12,14 +12,14 @@ class MotorControl
         void MotorStop();
         void MotorFullSpeed(bool forward);
         bool IsMotorRunning();
-        void CheckMaxRunTime(int maxRunTime = 3000);    // 3000 ms as default
+        bool CheckMaxRunTime(int maxRunTime = 3000);    // 3000 ms as default
     
     private:
         // Methods
         bool EnableMotor(bool enable);
         bool ValidPins(int forwardPin, int backwardPin);
 
-        // Fields
+        // FieldS
         const int m_EnablePin = 0;
         const int m_ForwardPin = 0;
         const int m_BackwardPin = 0;

@@ -12,9 +12,9 @@ class BusinessLogic
     public:
         BusinessLogic(MotorControl* motorControl);
         void CheckMessage(ClientMsg clientData);
+        void SendHtmlPage(WiFiClient client, bool motorStopped = false);
 
     private:
-        void SendHtmlPage(WiFiClient client);
 
     public:
         static int s_MaxRunTime;

@@ -33,7 +33,7 @@ void BusinessLogic::CheckMessage(ClientMsg clientData)
     SendHtmlPage(clientData.Client);
 }
 
-void BusinessLogic::SendHtmlPage(WiFiClient client)
+void BusinessLogic::SendHtmlPage(WiFiClient client, bool motorStopped)
 {
     bool motorRunning = m_MotorControl->IsMotorRunning();
 
@@ -46,9 +46,9 @@ void BusinessLogic::SendHtmlPage(WiFiClient client)
     client.println(html_Style);
 
     // Background image
-    client.printf("body {background-image: url('%s');\n", html_ImageSourceHappy);
-    client.println("background-size: cover;");
-    client.println("background-repeat: none;}");
+    // client.printf("body {background-image: url('%s');\n", html_ImageSourceHappy);
+    // client.println("background-size: cover;");
+    // client.println("background-repeat: none;}");
 
     // Text Color
     // client.printf("h1 {color: %s}\n", ledOnNow ? "green" : "red");
@@ -69,6 +69,12 @@ void BusinessLogic::SendHtmlPage(WiFiClient client)
     // The href property sets the addres
     client.printf("<p><a href=\"/LED/%s\"><button class=\"button\">%s voeren</button></a></p>\n", motorRunning ? StopFeeding : StartFeeding, motorRunning ? "Stop" : "Start");
     client.println(html_BodyEnd);
+
+    // Textbox for motor timeout
+    // client.println("<form action="/action_page.php">");
+    // client.println("<label for="fname">First name:</label>");
+    // client.println("<input type="text" id="fname" name="fname"><br><br>");
+    client.println("<input type='number' id='myNumber' name='myNumber' step='1' oninput='validity.valid||(value=\"\");'>");
 
     // End Response---------------------------------------------
     client.println(html_HtmlEnd);
