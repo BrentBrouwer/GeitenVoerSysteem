@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Wifi/WifiServer/WifiServerESP.h"
+#include "Wifi/WifiServer/AsyncWifiServer.h"
 #include "Motor/MotorControl.h"
 #include "BusinessLogic/BusinessLogic.h"
 
@@ -10,7 +11,8 @@
 int m_LastStatusChange = 0;
 
 // Wifi handling
-WifiServerESP* m_WifiServer;
+// WifiServerESP* m_WifiServer;
+AsyncWifiServer* m_WifiServer;
 
 // Feeding motor
 #define MOTOR_A_ENABLE 4
@@ -41,7 +43,8 @@ void setup()
     // m_WifiServer = new WifiServer(80, "De Onderbroek Van Oma Rikie", "Gordijn564", "test");
     // m_WifiServer = new WifiServerESP(80, "vBakel", "1001100111");
     // m_WifiServer = new WifiServerESP(80, "Eenwieler", "Autoband");
-    m_WifiServer = new WifiServerESP(80, "24GHz", "123456789");
+    // m_WifiServer = new WifiServerESP(80, "24GHz", "123456789");
+    m_WifiServer = new AsyncWifiServer("vBakel", "1001100111");
 
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
@@ -57,6 +60,7 @@ void loop()
     // put your main code here, to run repeatedly:
     LedStatusControl();
 
+    /*
     // Check for connected clients that have send a request
     ClientMsg newClient = m_WifiServer->GetConnectedClient();
 
@@ -78,14 +82,15 @@ void loop()
         // newClient.Client.stop();
         Serial.println("Client disconnected");
     }
+    */
 
     // ToDo: reset the button in the html page when the motor is stopped
     // Motor timeout control
     // m_FeedMotor->CheckMaxRunTime(BusinessLogic::s_MaxRunTime);
-    if (m_FeedMotor->CheckMaxRunTime(BusinessLogic::s_MaxRunTime) && &newClient.Client != nullptr)
+    if (m_FeedMotor->CheckMaxRunTime(BusinessLogic::s_MaxRunTime)) // && &newClient.Client != nullptr)
     // if (true)
     {
-        m_BusinessLogic->SendHtmlPage(newClient.Client);
+        // m_BusinessLogic->SendHtmlPage(newClient.Client);
         Serial.println("Motor stopped by timeout");
     }
 }
