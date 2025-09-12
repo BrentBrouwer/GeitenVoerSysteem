@@ -44,7 +44,8 @@ void setup()
     // m_WifiServer = new WifiServerESP(80, "vBakel", "1001100111");
     // m_WifiServer = new WifiServerESP(80, "Eenwieler", "Autoband");
     // m_WifiServer = new WifiServerESP(80, "24GHz", "123456789");
-    m_WifiServer = new AsyncWifiServer("vBakel", "1001100111");
+    // m_WifiServer = new AsyncWifiServer("vBakel", "1001100111");
+    m_WifiServer = new AsyncWifiServer("24GHz", "123456789");
 
     // Create the feeding motor
     m_FeedMotor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "FeedMotor");
