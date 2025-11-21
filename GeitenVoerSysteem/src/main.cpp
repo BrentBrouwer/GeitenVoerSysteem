@@ -19,6 +19,7 @@ WebServer server(80);
 unsigned long AliveLedStatusChanged = 0;
 unsigned long motorDurationMs = 5000; // Default motor run time in milliseconds (5 seconds)
 unsigned long motorStartTime = 0;     // Time when the motor was last turned ON
+unsigned long motorLastEnabledTime = 0;
 bool isMotorRunning = false;          // Current state of the motor
 
 // --- HTML Templates (Stored in Flash Memory) ---
@@ -45,6 +46,7 @@ body{text-align: center; font-family: sans-serif;}
 const char HTML_TIME_FORM[] PROGMEM = R"=====(
 <div class='form-container'>
 <form action='/settime' method='get'>
+<h4>Admin area</h4>
 <label for='duration'>Duration (milliseconds):</label><br>
 <input type='number' id='duration' name='duration' value='%lu' min='100' max='120000' required><br><br>
 <input class='button' type='submit' value='Set Duration'></form>
@@ -139,7 +141,7 @@ void sendOptimizedHTML()
             statusClass, statusText,
             motorDurationMs,
             isMotorRunning ? "btn-stop" : "btn-start",
-            isMotorRunning ? "STOP Motor" : "START Motor");
+            isMotorRunning ? "Stop voeren" : "Start voeren");
     server.sendContent(buffer);
 
     // 3. Send Time Input Form (formatted with current duration)
@@ -181,6 +183,7 @@ void handleRun()
     {
         digitalWrite(MOTOR_PIN, HIGH);
         motorStartTime = millis();
+        motorLastEnabledTime = motorStartTime;
         isMotorRunning = true;
         char msg[100];
         sprintf(msg, "Motor started for: %lu ms", motorDurationMs);
