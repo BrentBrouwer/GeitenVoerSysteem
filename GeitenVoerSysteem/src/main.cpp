@@ -9,6 +9,8 @@ const int LED_ALIVE_PIN = 2;         // Alive LED Pin
 const int AliveOnPeriodTime = 100;
 const int AliveOffPeriodTime = 2000;
 const int UPDATE_INTERVAL_MS = 1000; // How often the browser checks the status (1 second)
+const char *AUTH_USERNAME = "admin";
+const char *AUTH_PASSWORD = "testa";
 
 // Create a WebServer object on port 80
 WebServer server(80);
@@ -198,6 +200,14 @@ void handleRun()
 
 void handleSetTime()
 {
+    // NEW: Check for authentication before allowing the duration change
+    if (!server.authenticate(AUTH_USERNAME, AUTH_PASSWORD))
+    {
+        // Request credentials if authentication fails
+        server.requestAuthentication();
+        return; // Stop execution
+    }
+    
     if (server.hasArg("duration"))
     {
         long newDuration = server.arg("duration").toInt();
