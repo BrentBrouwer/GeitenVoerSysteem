@@ -61,6 +61,7 @@ const statusElement = document.getElementById('statusText');
 const buttonLink = document.getElementById('motorLink');
 const buttonElement = document.getElementById('motorButton');
 const durationElement = document.getElementById('durationDisplay');
+const lastRunElement = document.getElementById('lastRunDisplay');
 const interval = %d; // Polling interval from ESP32
 
 function updateStatus(status) {
@@ -68,15 +69,16 @@ function updateStatus(status) {
     if (status.running) {
         statusElement.textContent = "Er wordt gevoerd";
         statusElement.className = "state running";
-        buttonElement.textContent = "STOP Motor";
+        buttonElement.textContent = "Stop voeren";
         buttonElement.className = "button btn-stop";
     } else {
         statusElement.textContent = "Er wordt niet gevoerd";
         statusElement.className = "state stopped";
-        buttonElement.textContent = "START Motor";
+        buttonElement.textContent = "Start voeren";
         buttonElement.className = "button btn-start";
     }
     // Update Duration Display (in case it was changed)
+    lastRunElement.textContent = status.lastRun + " ms";
     durationElement.textContent = status.duration + " ms";
 }
 
@@ -136,9 +138,11 @@ void sendOptimizedHTML()
 
     sprintf(buffer,
             "<p>Voer Status: <span id='statusText' class='state %s'>%s</span></p>"
+            "<p>Tijd sinds laatste voer moment: <span id='lastRunDisplay'>%lu ms</span></p>"
             "<p>Motor Duration Set: <span id='durationDisplay'>%lu ms</span></p>"
             "<p><a id='motorLink' href='/run'><button id='motorButton' class='button %s'>%s</button></a></p>",
             statusClass, statusText,
+            millis() - motorLastEnabledTime,
             motorDurationMs,
             isMotorRunning ? "btn-stop" : "btn-start",
             isMotorRunning ? "Stop voeren" : "Start voeren");
@@ -157,7 +161,7 @@ void sendOptimizedHTML()
 void handleStatus()
 {
     char response[128];
-    sprintf(response, "{\"running\":%s,\"duration\":%lu}", isMotorRunning ? "true" : "false", motorDurationMs);
+    sprintf(response, "{\"running\":%s,\"lastRun\":%lu,\"duration\":%lu}", isMotorRunning ? "true" : "false", millis() - motorLastEnabledTime, motorDurationMs);
 
     // String response = "{\"running\":";
     // response += isMotorRunning ? "true" : "false";
