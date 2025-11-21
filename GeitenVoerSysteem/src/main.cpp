@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <WebServer.h>
+#include "time.h"
 
 // --- Configuration ---
 const char *ssid = "vBakel";         // Replace with your WiFi network name
@@ -12,6 +13,11 @@ const int UPDATE_INTERVAL_MS = 1000; // How often the browser checks the status 
 const char *AUTH_USERNAME = "admin";
 const char *AUTH_PASSWORD = "choco";
 
+// NTP Server
+const char *ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
+
 // Create a WebServer object on port 80
 WebServer server(80);
 
@@ -19,7 +25,7 @@ WebServer server(80);
 unsigned long AliveLedStatusChanged = 0;
 unsigned long motorDurationMs = 5000; // Default motor run time in milliseconds (5 seconds)
 unsigned long motorStartTime = 0;     // Time when the motor was last turned ON
-unsigned long motorLastEnabledTime = 0;
+char motorLastRun[128];
 bool isMotorRunning = false;          // Current state of the motor
 
 // --- HTML Templates (Stored in Flash Memory) ---
@@ -78,7 +84,7 @@ function updateStatus(status) {
         buttonElement.className = "button btn-start";
     }
     // Update Duration Display (in case it was changed)
-    lastRunElement.textContent = status.lastRun + " ms";
+    lastRunElement.textContent = status.lastRun;
     durationElement.textContent = status.duration + " ms";
 }
 
@@ -122,6 +128,17 @@ void ControlAliveLed()
     }
 }
 
+// --- NTP Server data retrieval ---
+tm GetLocalTime()
+{
+    tm timeinfo;
+    if (!getLocalTime(&timeinfo))
+    {
+        Serial.println("Failed to obtain time");
+    }
+    return timeinfo;
+}
+
 // --- Optimized HTML Content Function ---
 void sendOptimizedHTML()
 {
@@ -138,11 +155,11 @@ void sendOptimizedHTML()
 
     sprintf(buffer,
             "<p>Voer Status: <span id='statusText' class='state %s'>%s</span></p>"
-            "<p>Tijd sinds laatste voer moment: <span id='lastRunDisplay'>%lu ms</span></p>"
+            "<p>Tijd sinds laatste voer moment: <span id='lastRunDisplay'>%s</span></p>"
             "<p>Motor Duration Set: <span id='durationDisplay'>%lu ms</span></p>"
             "<p><a id='motorLink' href='/run'><button id='motorButton' class='button %s'>%s</button></a></p>",
             statusClass, statusText,
-            millis() - motorLastEnabledTime,
+            motorLastRun,
             motorDurationMs,
             isMotorRunning ? "btn-stop" : "btn-start",
             isMotorRunning ? "Stop voeren" : "Start voeren");
@@ -161,7 +178,7 @@ void sendOptimizedHTML()
 void handleStatus()
 {
     char response[128];
-    sprintf(response, "{\"running\":%s,\"lastRun\":%lu,\"duration\":%lu}", isMotorRunning ? "true" : "false", millis() - motorLastEnabledTime, motorDurationMs);
+    sprintf(response, "{\"running\":%s,\"lastRun\":%s,\"duration\":%lu}", isMotorRunning ? "true" : "false", motorLastRun, motorDurationMs);
 
     // String response = "{\"running\":";
     // response += isMotorRunning ? "true" : "false";
@@ -187,8 +204,11 @@ void handleRun()
     {
         digitalWrite(MOTOR_PIN, HIGH);
         motorStartTime = millis();
-        motorLastEnabledTime = motorStartTime;
         isMotorRunning = true;
+        
+        tm time = GetLocalTime();
+        strftime(motorLastRun, sizeof(motorLastRun), "%A, %B %d %Y %H:%M:%S", &time);
+
         char msg[100];
         sprintf(msg, "Motor started for: %lu ms", motorDurationMs);
         Serial.println(msg);
@@ -232,7 +252,6 @@ void handleSetTime()
 }
 
 // --- Setup and Loop ---
-
 void setup()
 {
     Serial.begin(115200);
@@ -261,6 +280,13 @@ void setup()
 
     server.begin();
     Serial.println("HTTP server started");
+
+    // Init and get the time
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    
+    char timeMsg[128];
+    tm time = GetLocalTime();
+    strftime(timeMsg, sizeof(timeMsg), "%A, %B %d %Y %H:%M:%S", &time);
 }
 
 void loop()
