@@ -224,7 +224,7 @@ void handleRun()
         digitalWrite(MOTOR_PIN, LOW);
         motorStartTime = 0;
         isMotorRunning = false;
-        updateLastActionTime(); // FIX: Update time when manually stopping
+        // updateLastActionTime(); // FIX: Update time when manually stopping
         Serial.println("Motor stopped manually.");
     }
     server.sendHeader("Location", "/");
@@ -289,9 +289,6 @@ void setup()
 
     // Init and get the time
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-
-    // Initial time update
-    updateLastActionTime(); 
 }
 
 void loop()
@@ -308,7 +305,7 @@ void loop()
             digitalWrite(MOTOR_PIN, LOW);
             isMotorRunning = false;
             motorStartTime = 0;
-            updateLastActionTime(); // FIX: Update time when stopping due to timer
+            // updateLastActionTime(); // FIX: Update time when stopping due to timer
             
             char msg[100];
             sprintf(msg, "Motor stopped automatically after %lu ms", motorDurationMs);
