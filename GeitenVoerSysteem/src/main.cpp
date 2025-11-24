@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include "time.h"
+#include "Motor/MotorControl.h"
 
 // --- Configuration ---
 const char *ssid = "vBakel";          // Replace with your WiFi network name
@@ -12,6 +13,12 @@ const int AliveOffPeriodTime = 2000;
 const int UPDATE_INTERVAL_MS = 1000;  // How often the browser checks the status (1 second)
 const char *AUTH_USERNAME = "admin";
 const char *AUTH_PASSWORD = "choco";
+
+// Motors
+#define MOTOR_A_ENABLE 4
+#define MOTOR_A_BACKWARD 18
+#define MOTOR_A_FORWARD 19
+MotorControl* m_Motor;
 
 // NTP Server
 const char *ntpServer = "pool.ntp.org";
@@ -210,7 +217,8 @@ void handleRun()
     if (!isMotorRunning)
     {
         // Start motor
-        digitalWrite(MOTOR_PIN, HIGH);
+        // digitalWrite(MOTOR_PIN, HIGH);
+        m_Motor->MotorFullSpeed(true);
         motorStartTime = millis();
         isMotorRunning = true;
         updateLastActionTime(); // FIX: Update time when starting
@@ -221,7 +229,8 @@ void handleRun()
     else
     {
         // Stop motor manually
-        digitalWrite(MOTOR_PIN, LOW);
+        // digitalWrite(MOTOR_PIN, LOW);
+        m_Motor->MotorStop();
         motorStartTime = 0;
         isMotorRunning = false;
         // updateLastActionTime(); // FIX: Update time when manually stopping
@@ -262,8 +271,11 @@ void setup()
 {
     Serial.begin(115200);
     pinMode(LED_ALIVE_PIN, OUTPUT);
-    pinMode(MOTOR_PIN, OUTPUT);
-    digitalWrite(MOTOR_PIN, LOW);
+
+    // Create and initialize the motor
+    m_Motor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "Main motor");
+    // pinMode(MOTOR_PIN, OUTPUT);
+    // digitalWrite(MOTOR_PIN, LOW);
 
     char msg[32];
     sprintf(msg, "Connecting to %s", ssid);
@@ -297,19 +309,17 @@ void loop()
     server.handleClient();
 
     // Check if the motor's timed duration has elapsed
-    if (isMotorRunning && motorStartTime > 0)
+    if (m_Motor->CheckMaxRunTime(motorDurationMs))
     {
-        if (millis() - motorStartTime >= motorDurationMs)
-        {
-            // Motor stops automatically
-            digitalWrite(MOTOR_PIN, LOW);
-            isMotorRunning = false;
-            motorStartTime = 0;
-            // updateLastActionTime(); // FIX: Update time when stopping due to timer
-            
-            char msg[100];
-            sprintf(msg, "Motor stopped automatically after %lu ms", motorDurationMs);
-            Serial.println(msg);
-        }
+        // Motor stops automatically
+        // digitalWrite(MOTOR_PIN, LOW);
+        m_Motor->MotorStop();
+        isMotorRunning = false;
+        motorStartTime = 0;
+        // updateLastActionTime(); // FIX: Update time when stopping due to timer
+        
+        char msg[100];
+        sprintf(msg, "Motor stopped automatically after %lu ms", motorDurationMs);
+        Serial.println(msg);
     }
 }
