@@ -6,7 +6,6 @@
 // --- Configuration ---
 const char *ssid = "vBakel";          // Replace with your WiFi network name
 const char *password = "1001100111";  // Replace with your WiFi password
-const int MOTOR_PIN = 4;              // GPIO pin connected to the motor driver control
 const int LED_ALIVE_PIN = 2;          // Alive LED Pin
 const int AliveOnPeriodTime = 100;
 const int AliveOffPeriodTime = 2000;
@@ -33,10 +32,10 @@ unsigned long AliveLedStatusChanged = 0;
 unsigned long motorDurationMs = 5000; // Default motor run time in milliseconds (5 seconds)
 unsigned long motorStartTime = 0;     // Time when the motor was last turned ON
 bool isMotorRunning = false;          // Current state of the motor
-// FIX: New variable to store the timestamp of the last feed action
-char lastActionTime[128] = "Nog niet gevoerd"; 
+char lastActionTime[128] = "Nog niet gevoerd";
 
-// --- HTML Templates (No changes needed) ---
+// --- HTML Templates ---
+char html_buffer[3000]; 
 // ... (HTML_HEADER, HTML_TIME_FORM, HTML_FOOTER are unchanged)
 const char HTML_HEADER[] PROGMEM = R"=====(
 <!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -181,8 +180,6 @@ tm GetLocalTime()
 // --- Optimized HTML Content Function ---
 void sendOptimizedHTML()
 {
-    char buffer[2048];
-
     // 1. Send HTML Header
     server.sendContent_P(HTML_HEADER);
 
@@ -190,7 +187,7 @@ void sendOptimizedHTML()
     const char *statusText = isMotorRunning ? "Er wordt gevoerd" : "Er wordt niet gevoerd";
     const char *statusClass = isMotorRunning ? "running" : "stopped";
 
-    sprintf(buffer,
+    sprintf(html_buffer,
             "<p>Voer Status: <span id='statusText' class='state %s'>%s</span></p>"
             // FIX: Use the global lastActionTime variable directly here
             "<p>Laatste actie: <span id='lastRunDisplay'>%s</span></p>" 
@@ -201,15 +198,15 @@ void sendOptimizedHTML()
             motorDurationMs,
             isMotorRunning ? "btn-stop" : "btn-start",
             isMotorRunning ? "Stop voeren" : "Start voeren");
-    server.sendContent(buffer);
+    server.sendContent(html_buffer);
 
     // 3. Send Time Input Form (formatted with current duration)
-    sprintf(buffer, HTML_TIME_FORM, motorDurationMs);
-    server.sendContent(buffer);
+    sprintf(html_buffer, HTML_TIME_FORM, motorDurationMs);
+    server.sendContent(html_buffer);
 
     // 4. Send HTML Footer with JavaScript (formatted with polling interval)
-    sprintf(buffer, HTML_FOOTER, UPDATE_INTERVAL_MS);
-    server.sendContent(buffer);
+    sprintf(html_buffer, HTML_FOOTER, UPDATE_INTERVAL_MS);
+    server.sendContent(html_buffer);
 }
 
 // --- Handler for Status API ---
@@ -240,7 +237,6 @@ void handleRun()
     if (!isMotorRunning)
     {
         // Start motor
-        // digitalWrite(MOTOR_PIN, HIGH);
         m_Motor->MotorRunForward();
         motorStartTime = millis();
         isMotorRunning = true;
@@ -252,7 +248,6 @@ void handleRun()
     else
     {
         // Stop motor manually
-        // digitalWrite(MOTOR_PIN, LOW);
         m_Motor->MotorStop();
         motorStartTime = 0;
         isMotorRunning = false;
@@ -264,14 +259,14 @@ void handleRun()
     server.client().stop();
 }
 
-void handleReverse_on()
+void handleReverseOn()
 {
     m_Motor->MotorRunBackward();
     Serial.println("Reverse motor ON (momentary).");
     server.send(200, "text/plain", "OK");
 }
 
-void handleReverse_off()
+void handleReverseOff()
 {
     m_Motor->MotorStop();
     Serial.println("Reverse motor OFF (momentary).");
@@ -311,8 +306,6 @@ void setup()
 
     // Create and initialize the motor
     m_Motor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "Main motor");
-    // pinMode(MOTOR_PIN, OUTPUT);
-    // digitalWrite(MOTOR_PIN, LOW);
 
     char msg[32];
     sprintf(msg, "Connecting to %s", ssid);
@@ -333,8 +326,8 @@ void setup()
     server.on("/run", handleRun);
     server.on("/settime", handleSetTime);
     server.on("/status", handleStatus);
-    server.on("/reverse_on", handleReverse_on);
-    server.on("/reverse_off", handleReverse_off);
+    server.on("/reverse_on", handleReverseOn);
+    server.on("/reverse_off", handleReverseOff);
 
     server.begin();
     Serial.println("HTTP server started");
@@ -352,7 +345,6 @@ void loop()
     if (m_Motor->CheckMaxRunTime(motorDurationMs))
     {
         // Motor stops automatically
-        // digitalWrite(MOTOR_PIN, LOW);
         m_Motor->MotorStop();
         isMotorRunning = false;
         motorStartTime = 0;
