@@ -48,6 +48,7 @@ body{text-align: center; font-family: sans-serif;}
 .form-container{margin-top: 20px; border: 1px solid #ccc; padding: 15px; display: inline-block; border-radius: 5px;}
 .running{color: green;} .stopped{color: red;}
 .btn-start{background-color: #28a745;} .btn-stop{background-color: #dc3545;}
+.btn-reverse{background-color: #ffc107; color: black;}
 </style>
 </head><body>
 <h2>Micky & Molly voermachine</h2>
@@ -66,12 +67,16 @@ const char HTML_TIME_FORM[] PROGMEM = R"=====(
 )=====";
 
 const char HTML_FOOTER[] PROGMEM = R"=====(
+<p>
+    <button id='reverseButton' class='button btn-reverse'>Houd vast voor Achteruit</button>
+</p>
 <script>
 const statusElement = document.getElementById('statusText');
 const buttonLink = document.getElementById('motorLink');
 const buttonElement = document.getElementById('motorButton');
 const durationElement = document.getElementById('durationDisplay');
 const lastRunElement = document.getElementById('lastRunDisplay');
+const reverseButton = document.getElementById('reverseButton');
 const interval = %d; // Polling interval from ESP32
 
 function updateStatus(status) {
@@ -100,6 +105,24 @@ function pollStatus() {
         })
         .catch(error => console.error('Error fetching status:', error));
 }
+
+// --- Reverse Button Logic (Momentary Control) ---
+reverseButton.addEventListener('mousedown', function() {
+    // Send request to turn motor reverse ON
+    fetch('/reverse_on').catch(error => console.error('Reverse ON Error:', error));
+});
+reverseButton.addEventListener('mouseup', function() {
+    // Send request to turn motor reverse OFF
+    fetch('/reverse_off').catch(error => console.error('Reverse OFF Error:', error));
+});
+// Handle touch screen devices
+reverseButton.addEventListener('touchstart', function(e) { 
+    e.preventDefault(); 
+    fetch('/reverse_on').catch(error => console.error('Reverse ON Touch Error:', error));
+});
+reverseButton.addEventListener('touchend', function() {
+    fetch('/reverse_off').catch(error => console.error('Reverse OFF Touch Error:', error));
+});
 
 // Start polling immediately and then every 'interval' milliseconds
 pollStatus(); 
@@ -218,7 +241,7 @@ void handleRun()
     {
         // Start motor
         // digitalWrite(MOTOR_PIN, HIGH);
-        m_Motor->MotorFullSpeed(true);
+        m_Motor->MotorRunForward();
         motorStartTime = millis();
         isMotorRunning = true;
         updateLastActionTime(); // FIX: Update time when starting
@@ -239,6 +262,20 @@ void handleRun()
     server.sendHeader("Location", "/");
     server.send(303);
     server.client().stop();
+}
+
+void handleReverse_on()
+{
+    m_Motor->MotorRunBackward();
+    Serial.println("Reverse motor ON (momentary).");
+    server.send(200, "text/plain", "OK");
+}
+
+void handleReverse_off()
+{
+    m_Motor->MotorStop();
+    Serial.println("Reverse motor OFF (momentary).");
+    server.send(200, "text/plain", "OK");
 }
 
 void handleSetTime()
@@ -291,10 +328,13 @@ void setup()
     Serial.print("Access Web Server at: http://");
     Serial.println(WiFi.localIP());
 
+    // Create endpoints for the server
     server.on("/", handleRoot);
     server.on("/run", handleRun);
     server.on("/settime", handleSetTime);
     server.on("/status", handleStatus);
+    server.on("/reverse_on", handleReverse_on);
+    server.on("/reverse_off", handleReverse_off);
 
     server.begin();
     Serial.println("HTTP server started");

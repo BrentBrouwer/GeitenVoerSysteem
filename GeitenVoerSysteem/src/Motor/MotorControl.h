@@ -10,7 +10,8 @@ class MotorControl
 
         // Methods
         void MotorStop();
-        void MotorFullSpeed(bool forward);
+        void MotorRunForward();
+        void MotorRunBackward();
         bool IsMotorRunning();
         bool CheckMaxRunTime(int maxRunTime = 3000);    // 3000 ms as default
     

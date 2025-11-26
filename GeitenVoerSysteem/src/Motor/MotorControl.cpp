@@ -30,39 +30,45 @@ void MotorControl::MotorStop()
     }
 }
 
-void MotorControl::MotorFullSpeed(bool forward)
+void MotorControl::MotorRunForward()
 {
-    char msg[64];
-    sprintf(msg, "%s full speed %s", m_MotorString, forward ? "forward" : "backward");
+    char msg[32];
+    sprintf(msg, "%s: run forward", m_MotorString);
     Serial.println(msg);
 
     // Enable the drive
     if (EnableMotor(true))
     {
-        if (forward)
+        // First disable backwards, then enable forwards
+        if (digitalRead(m_BackwardPin))
         {
-            // First disable backwards, then enable forwards
-            if (digitalRead(m_BackwardPin))
-            {
-                digitalWrite(m_BackwardPin, LOW);
-                delay(100);
-            }
-            digitalWrite(m_ForwardPin, HIGH);
-            m_StartTimeStamp = millis();
-            Serial.println("Forward complete");
+            digitalWrite(m_BackwardPin, LOW);
+            delay(100);
         }
-        else
-        {
-            // First disable forwards, then enable backwards
-            if (digitalRead(m_ForwardPin))
-            {   
-                digitalWrite(m_ForwardPin, LOW);
-                delay(100);
-            }
-            digitalWrite(m_BackwardPin, HIGH);
-            m_StartTimeStamp = millis();
-            Serial.println("Backward complete");
+        digitalWrite(m_ForwardPin, HIGH);
+        m_StartTimeStamp = millis();
+        Serial.println("Forward complete");
+    }
+}
+
+void MotorControl::MotorRunBackward()
+{
+    char msg[32];
+    sprintf(msg, "%s: run backward", m_MotorString);
+    Serial.println(msg);
+
+    // Enable the drive
+    if (EnableMotor(true))
+    {
+        // First disable forwards, then enable backwards
+        if (digitalRead(m_ForwardPin))
+        {   
+            digitalWrite(m_ForwardPin, LOW);
+            delay(100);
         }
+        digitalWrite(m_BackwardPin, HIGH);
+        m_StartTimeStamp = millis();
+        Serial.println("Backward complete");
     }
 }
 
