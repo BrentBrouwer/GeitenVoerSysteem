@@ -6,7 +6,6 @@
 // --- Configuration ---
 const char *ssid = "vBakel";          // Replace with your WiFi network name
 const char *password = "1001100111";  // Replace with your WiFi password
-const int MOTOR_PIN = 4;              // GPIO pin connected to the motor driver control
 const int LED_ALIVE_PIN = 2;          // Alive LED Pin
 const int AliveOnPeriodTime = 100;
 const int AliveOffPeriodTime = 2000;
@@ -16,8 +15,8 @@ const char *AUTH_PASSWORD = "choco";
 
 // Motors
 #define MOTOR_A_ENABLE 4
-#define MOTOR_A_BACKWARD 18
-#define MOTOR_A_FORWARD 19
+#define MOTOR_A_BACKWARD 19
+#define MOTOR_A_FORWARD 18
 MotorControl* m_Motor;
 
 // NTP Server
@@ -33,10 +32,11 @@ unsigned long AliveLedStatusChanged = 0;
 unsigned long motorDurationMs = 5000; // Default motor run time in milliseconds (5 seconds)
 unsigned long motorStartTime = 0;     // Time when the motor was last turned ON
 bool isMotorRunning = false;          // Current state of the motor
-// FIX: New variable to store the timestamp of the last feed action
-char lastActionTime[128] = "Nog niet gevoerd"; 
+bool isReverseActive = false;
+char lastActionTime[128] = "Nog niet gevoerd";
 
-// --- HTML Templates (No changes needed) ---
+// --- HTML Templates ---
+char html_buffer[3500]; 
 // ... (HTML_HEADER, HTML_TIME_FORM, HTML_FOOTER are unchanged)
 const char HTML_HEADER[] PROGMEM = R"=====(
 <!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -48,6 +48,7 @@ body{text-align: center; font-family: sans-serif;}
 .form-container{margin-top: 20px; border: 1px solid #ccc; padding: 15px; display: inline-block; border-radius: 5px;}
 .running{color: green;} .stopped{color: red;}
 .btn-start{background-color: #28a745;} .btn-stop{background-color: #dc3545;}
+.btn-reverse{background-color: #ffc107; color: black;}
 </style>
 </head><body>
 <h2>Micky & Molly voermachine</h2>
@@ -66,13 +67,28 @@ const char HTML_TIME_FORM[] PROGMEM = R"=====(
 )=====";
 
 const char HTML_FOOTER[] PROGMEM = R"=====(
+<p>
+    <button id='reverseButton' class='button btn-reverse'>Houd vast voor Achteruit</button>
+</p>
 <script>
 const statusElement = document.getElementById('statusText');
 const buttonLink = document.getElementById('motorLink');
 const buttonElement = document.getElementById('motorButton');
 const durationElement = document.getElementById('durationDisplay');
 const lastRunElement = document.getElementById('lastRunDisplay');
+const reverseButton = document.getElementById('reverseButton');
 const interval = %d; // Polling interval from ESP32
+
+function setForwardButtonState(enabled) {
+    buttonElement.disabled = !enabled;
+    buttonLink.style.pointerEvents = enabled ? 'auto' : 'none'; // Disables the <a> tag
+    buttonElement.style.opacity = enabled ? '1' : '0.5';
+}
+
+function setReverseButtonState(enabled) {
+    reverseButton.disabled = !enabled;
+    reverseButton.style.opacity = enabled ? '1' : '0.5';
+}
 
 function updateStatus(status) {
     // Update Status Text and Color
@@ -81,11 +97,15 @@ function updateStatus(status) {
         statusElement.className = "state running";
         buttonElement.textContent = "Stop voeren";
         buttonElement.className = "button btn-stop";
+        // Disable Reverse if Forward is running (polled state)
+        setReverseButtonState(false);
     } else {
         statusElement.textContent = "Er wordt niet gevoerd";
         statusElement.className = "state stopped";
         buttonElement.textContent = "Start voeren";
         buttonElement.className = "button btn-start";
+        // Enable Reverse if Forward is stopped (polled state)
+        setReverseButtonState(true);
     }
     // Update Duration Display (in case it was changed)
     lastRunElement.textContent = status.lastRun;
@@ -100,6 +120,30 @@ function pollStatus() {
         })
         .catch(error => console.error('Error fetching status:', error));
 }
+
+// --- Reverse Button Logic (Momentary Control) ---
+reverseButton.addEventListener('mousedown', function() {
+    // Disable Forward button instantly when Reverse is held
+    setForwardButtonState(false);
+    // Send request to turn motor reverse ON
+    fetch('/reverse_on').catch(error => console.error('Reverse ON Error:', error));
+});
+reverseButton.addEventListener('mouseup', function() {
+    // Re-enable Forward button instantly when Reverse is released
+    setForwardButtonState(true);
+    // Send request to turn motor reverse OFF
+    fetch('/reverse_off').catch(error => console.error('Reverse OFF Error:', error));
+});
+// Handle touch screen devices
+reverseButton.addEventListener('touchstart', function(e) { 
+    e.preventDefault(); 
+    setForwardButtonState(false); // Disable Forward on touch start
+    fetch('/reverse_on').catch(error => console.error('Reverse ON Touch Error:', error));
+});
+reverseButton.addEventListener('touchend', function() {
+    setForwardButtonState(true); // Re-enable Forward on touch end
+    fetch('/reverse_off').catch(error => console.error('Reverse OFF Touch Error:', error));
+});
 
 // Start polling immediately and then every 'interval' milliseconds
 pollStatus(); 
@@ -158,8 +202,6 @@ tm GetLocalTime()
 // --- Optimized HTML Content Function ---
 void sendOptimizedHTML()
 {
-    char buffer[2048];
-
     // 1. Send HTML Header
     server.sendContent_P(HTML_HEADER);
 
@@ -167,7 +209,7 @@ void sendOptimizedHTML()
     const char *statusText = isMotorRunning ? "Er wordt gevoerd" : "Er wordt niet gevoerd";
     const char *statusClass = isMotorRunning ? "running" : "stopped";
 
-    sprintf(buffer,
+    sprintf(html_buffer,
             "<p>Voer Status: <span id='statusText' class='state %s'>%s</span></p>"
             // FIX: Use the global lastActionTime variable directly here
             "<p>Laatste actie: <span id='lastRunDisplay'>%s</span></p>" 
@@ -178,15 +220,15 @@ void sendOptimizedHTML()
             motorDurationMs,
             isMotorRunning ? "btn-stop" : "btn-start",
             isMotorRunning ? "Stop voeren" : "Start voeren");
-    server.sendContent(buffer);
+    server.sendContent(html_buffer);
 
     // 3. Send Time Input Form (formatted with current duration)
-    sprintf(buffer, HTML_TIME_FORM, motorDurationMs);
-    server.sendContent(buffer);
+    sprintf(html_buffer, HTML_TIME_FORM, motorDurationMs);
+    server.sendContent(html_buffer);
 
     // 4. Send HTML Footer with JavaScript (formatted with polling interval)
-    sprintf(buffer, HTML_FOOTER, UPDATE_INTERVAL_MS);
-    server.sendContent(buffer);
+    sprintf(html_buffer, HTML_FOOTER, UPDATE_INTERVAL_MS);
+    server.sendContent(html_buffer);
 }
 
 // --- Handler for Status API ---
@@ -214,11 +256,19 @@ void handleRoot()
 
 void handleRun()
 {
+    // NEW CHECK: If reverse is active, block forward run request
+    if (isReverseActive) {
+        Serial.println("BLOCKED: Cannot start forward while reverse button is held.");
+        server.sendHeader("Location", "/");
+        server.send(303);
+        server.client().stop();
+        return; 
+    }
+
     if (!isMotorRunning)
     {
         // Start motor
-        // digitalWrite(MOTOR_PIN, HIGH);
-        m_Motor->MotorFullSpeed(true);
+        m_Motor->MotorRunForward();
         motorStartTime = millis();
         isMotorRunning = true;
         updateLastActionTime(); // FIX: Update time when starting
@@ -229,7 +279,6 @@ void handleRun()
     else
     {
         // Stop motor manually
-        // digitalWrite(MOTOR_PIN, LOW);
         m_Motor->MotorStop();
         motorStartTime = 0;
         isMotorRunning = false;
@@ -239,6 +288,27 @@ void handleRun()
     server.sendHeader("Location", "/");
     server.send(303);
     server.client().stop();
+}
+
+void handleReverseOn()
+{
+    // NEW CHECK: If forward is running, block reverse activation
+    if (isMotorRunning) {
+        Serial.println("BLOCKED: Cannot start reverse while forward motor is running.");
+        server.send(200, "text/plain", "BLOCKED");
+        return;
+    }
+
+    m_Motor->MotorRunBackward();
+    Serial.println("Reverse motor ON (momentary).");
+    server.send(200, "text/plain", "OK");
+}
+
+void handleReverseOff()
+{
+    m_Motor->MotorStop();
+    Serial.println("Reverse motor OFF (momentary).");
+    server.send(200, "text/plain", "OK");
 }
 
 void handleSetTime()
@@ -274,8 +344,6 @@ void setup()
 
     // Create and initialize the motor
     m_Motor = new MotorControl(MOTOR_A_ENABLE, MOTOR_A_FORWARD, MOTOR_A_BACKWARD, "Main motor");
-    // pinMode(MOTOR_PIN, OUTPUT);
-    // digitalWrite(MOTOR_PIN, LOW);
 
     char msg[32];
     sprintf(msg, "Connecting to %s", ssid);
@@ -291,10 +359,13 @@ void setup()
     Serial.print("Access Web Server at: http://");
     Serial.println(WiFi.localIP());
 
+    // Create endpoints for the server
     server.on("/", handleRoot);
     server.on("/run", handleRun);
     server.on("/settime", handleSetTime);
     server.on("/status", handleStatus);
+    server.on("/reverse_on", handleReverseOn);
+    server.on("/reverse_off", handleReverseOff);
 
     server.begin();
     Serial.println("HTTP server started");
@@ -312,7 +383,6 @@ void loop()
     if (m_Motor->CheckMaxRunTime(motorDurationMs))
     {
         // Motor stops automatically
-        // digitalWrite(MOTOR_PIN, LOW);
         m_Motor->MotorStop();
         isMotorRunning = false;
         motorStartTime = 0;
