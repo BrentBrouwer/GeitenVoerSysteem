@@ -15,8 +15,8 @@ const char *AUTH_PASSWORD = "choco";
 
 // Motors
 #define MOTOR_A_ENABLE 4
-#define MOTOR_A_BACKWARD 18
-#define MOTOR_A_FORWARD 19
+#define MOTOR_A_BACKWARD 19
+#define MOTOR_A_FORWARD 18
 MotorControl* m_Motor;
 
 // NTP Server
