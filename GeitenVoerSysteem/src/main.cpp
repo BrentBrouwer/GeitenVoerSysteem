@@ -32,10 +32,11 @@ unsigned long AliveLedStatusChanged = 0;
 unsigned long motorDurationMs = 5000; // Default motor run time in milliseconds (5 seconds)
 unsigned long motorStartTime = 0;     // Time when the motor was last turned ON
 bool isMotorRunning = false;          // Current state of the motor
+bool isReverseActive = false;
 char lastActionTime[128] = "Nog niet gevoerd";
 
 // --- HTML Templates ---
-char html_buffer[3000]; 
+char html_buffer[3500]; 
 // ... (HTML_HEADER, HTML_TIME_FORM, HTML_FOOTER are unchanged)
 const char HTML_HEADER[] PROGMEM = R"=====(
 <!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'>
@@ -78,6 +79,17 @@ const lastRunElement = document.getElementById('lastRunDisplay');
 const reverseButton = document.getElementById('reverseButton');
 const interval = %d; // Polling interval from ESP32
 
+function setForwardButtonState(enabled) {
+    buttonElement.disabled = !enabled;
+    buttonLink.style.pointerEvents = enabled ? 'auto' : 'none'; // Disables the <a> tag
+    buttonElement.style.opacity = enabled ? '1' : '0.5';
+}
+
+function setReverseButtonState(enabled) {
+    reverseButton.disabled = !enabled;
+    reverseButton.style.opacity = enabled ? '1' : '0.5';
+}
+
 function updateStatus(status) {
     // Update Status Text and Color
     if (status.running) {
@@ -85,11 +97,15 @@ function updateStatus(status) {
         statusElement.className = "state running";
         buttonElement.textContent = "Stop voeren";
         buttonElement.className = "button btn-stop";
+        // Disable Reverse if Forward is running (polled state)
+        setReverseButtonState(false);
     } else {
         statusElement.textContent = "Er wordt niet gevoerd";
         statusElement.className = "state stopped";
         buttonElement.textContent = "Start voeren";
         buttonElement.className = "button btn-start";
+        // Enable Reverse if Forward is stopped (polled state)
+        setReverseButtonState(true);
     }
     // Update Duration Display (in case it was changed)
     lastRunElement.textContent = status.lastRun;
@@ -107,19 +123,25 @@ function pollStatus() {
 
 // --- Reverse Button Logic (Momentary Control) ---
 reverseButton.addEventListener('mousedown', function() {
+    // Disable Forward button instantly when Reverse is held
+    setForwardButtonState(false);
     // Send request to turn motor reverse ON
     fetch('/reverse_on').catch(error => console.error('Reverse ON Error:', error));
 });
 reverseButton.addEventListener('mouseup', function() {
+    // Re-enable Forward button instantly when Reverse is released
+    setForwardButtonState(true);
     // Send request to turn motor reverse OFF
     fetch('/reverse_off').catch(error => console.error('Reverse OFF Error:', error));
 });
 // Handle touch screen devices
 reverseButton.addEventListener('touchstart', function(e) { 
     e.preventDefault(); 
+    setForwardButtonState(false); // Disable Forward on touch start
     fetch('/reverse_on').catch(error => console.error('Reverse ON Touch Error:', error));
 });
 reverseButton.addEventListener('touchend', function() {
+    setForwardButtonState(true); // Re-enable Forward on touch end
     fetch('/reverse_off').catch(error => console.error('Reverse OFF Touch Error:', error));
 });
 
@@ -234,6 +256,15 @@ void handleRoot()
 
 void handleRun()
 {
+    // NEW CHECK: If reverse is active, block forward run request
+    if (isReverseActive) {
+        Serial.println("BLOCKED: Cannot start forward while reverse button is held.");
+        server.sendHeader("Location", "/");
+        server.send(303);
+        server.client().stop();
+        return; 
+    }
+
     if (!isMotorRunning)
     {
         // Start motor
@@ -261,6 +292,13 @@ void handleRun()
 
 void handleReverseOn()
 {
+    // NEW CHECK: If forward is running, block reverse activation
+    if (isMotorRunning) {
+        Serial.println("BLOCKED: Cannot start reverse while forward motor is running.");
+        server.send(200, "text/plain", "BLOCKED");
+        return;
+    }
+
     m_Motor->MotorRunBackward();
     Serial.println("Reverse motor ON (momentary).");
     server.send(200, "text/plain", "OK");
