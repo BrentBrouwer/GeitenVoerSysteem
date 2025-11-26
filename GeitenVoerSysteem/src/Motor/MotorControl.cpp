@@ -42,8 +42,11 @@ void MotorControl::MotorFullSpeed(bool forward)
         if (forward)
         {
             // First disable backwards, then enable forwards
-            digitalWrite(m_BackwardPin, LOW);
-            delay(100);
+            if (digitalRead(m_BackwardPin))
+            {
+                digitalWrite(m_BackwardPin, LOW);
+                delay(100);
+            }
             digitalWrite(m_ForwardPin, HIGH);
             m_StartTimeStamp = millis();
             Serial.println("Forward complete");
@@ -51,8 +54,11 @@ void MotorControl::MotorFullSpeed(bool forward)
         else
         {
             // First disable forwards, then enable backwards
-            digitalWrite(m_ForwardPin, LOW);
-            delay(100);
+            if (digitalRead(m_ForwardPin))
+            {   
+                digitalWrite(m_ForwardPin, LOW);
+                delay(100);
+            }
             digitalWrite(m_BackwardPin, HIGH);
             m_StartTimeStamp = millis();
             Serial.println("Backward complete");
